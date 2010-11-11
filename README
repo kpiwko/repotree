@@ -1,5 +1,8 @@
+Utility to recursively install artifacts into a Maven repository
+Based on Maven 3.
+
 usage:
 
 mvn package
 
-java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install>
+java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install> [additional arguments to Maven]
