@@ -1,0 +1,5 @@
+usage:
+
+mvn package
+
+java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install>
