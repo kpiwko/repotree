@@ -16,19 +16,16 @@
  */
 package org.jboss.wfk.repotree.filter;
 
-import java.util.jar.JarFile;
+import java.io.File;
 
 import org.jboss.wfk.repotree.Configuration;
-import org.jboss.wfk.repotree.MavenInstaller;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public class DependencyTreeFilter implements Filter<JarFile>
+public class DependencyTreeFilter implements Filter
 {
-   private MavenInstaller installer;
-
    public DependencyTreeFilter()
    {
    }
@@ -38,7 +35,7 @@ public class DependencyTreeFilter implements Filter<JarFile>
     * 
     * @see org.jboss.wfk.repotree.filter.Filter#accept(java.lang.Object)
     */
-   public boolean accept(JarFile element)
+   public boolean accept(File element)
    {
       return false;
    }
@@ -60,6 +57,5 @@ public class DependencyTreeFilter implements Filter<JarFile>
     */
    public void configure(Configuration configuration)
    {
-      this.installer = configuration.getInstaller();
    }
 }

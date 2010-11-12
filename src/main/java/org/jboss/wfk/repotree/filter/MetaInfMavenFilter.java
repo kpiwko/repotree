@@ -17,7 +17,6 @@
 package org.jboss.wfk.repotree.filter;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -26,19 +25,24 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.DefaultModelReader;
+import org.apache.maven.model.io.ModelReader;
 import org.jboss.wfk.repotree.Configuration;
-import org.jboss.wfk.repotree.IOUtil;
-import org.jboss.wfk.repotree.MavenInstaller;
+import org.jboss.wfk.repotree.artifact.Artifact;
+import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
+import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public class MetaInfMavenFilter implements Filter<JarFile>
+public class MetaInfMavenFilter implements Filter
 {
    private static final Logger log = Logger.getLogger(MetaInfMavenFilter.class.getName());
 
-   private MavenInstaller installer;
+   private MavenRepositorySystem system;
+   private RepositorySystemSession session;
 
    public MetaInfMavenFilter()
    {
@@ -47,11 +51,13 @@ public class MetaInfMavenFilter implements Filter<JarFile>
    /*
     * (non-Javadoc)
     * 
-    * @see org.jboss.wfk.repotree.filter.Filter#accept(java.lang.Object)
+    * @see org.jboss.wfk.repotree.filter.Filter#accept(java.io.File)
     */
-   public boolean accept(JarFile element)
+   public boolean accept(File file) throws Exception
    {
-      Enumeration<JarEntry> elements = element.entries();
+      JarFile jar = new JarFile(file);
+
+      Enumeration<JarEntry> elements = jar.entries();
       List<JarEntry> candidates = new ArrayList<JarEntry>();
 
       while (elements.hasMoreElements())
@@ -68,18 +74,18 @@ public class MetaInfMavenFilter implements Filter<JarFile>
          return false;
       }
 
-      boolean installed = false;
       for (JarEntry entry : candidates)
       {
          try
          {
-            File pom = File.createTempFile("pom-", ".xml");
+            ModelReader reader = new DefaultModelReader();
+            Model model = reader.read(jar.getInputStream(entry), null);
 
-            IOUtil.copy(element.getInputStream(entry), new FileOutputStream(pom));
-            installed = installer.install(new File(element.getName()), pom);
-            if (installed == true)
+            Artifact artifact = new Artifact(model);
+
+            if (system.installArtifact(session, artifact.attachFile(file), null))
             {
-               break;
+               return true;
             }
          }
          catch (IOException e)
@@ -88,7 +94,7 @@ public class MetaInfMavenFilter implements Filter<JarFile>
          }
       }
 
-      return installed;
+      return false;
    }
 
    /*
@@ -98,7 +104,8 @@ public class MetaInfMavenFilter implements Filter<JarFile>
     */
    public void configure(Configuration configuration)
    {
-      this.installer = configuration.getInstaller();
+      this.system = configuration.getRepositorySystem();
+      this.session = system.getSession();
    }
 
    /*

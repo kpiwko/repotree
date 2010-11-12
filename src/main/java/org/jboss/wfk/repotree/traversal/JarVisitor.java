@@ -19,7 +19,6 @@ package org.jboss.wfk.repotree.traversal;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 import org.jboss.wfk.repotree.Configuration;
@@ -33,12 +32,12 @@ public class JarVisitor implements Visitor
 {
    private static final Logger log = Logger.getLogger(JarVisitor.class.getName());
 
-   private List<Filter<JarFile>> filters;
+   private List<Filter> filters;
 
-   public JarVisitor(Configuration configuration, Filter<JarFile>... filters)
+   public JarVisitor(Configuration configuration, Filter... filters)
    {
-      this.filters = new ArrayList<Filter<JarFile>>(filters.length);
-      for (Filter<JarFile> filter : filters)
+      this.filters = new ArrayList<Filter>(filters.length);
+      for (Filter filter : filters)
       {
          filter.configure(configuration);
          this.filters.add(filter);
@@ -59,12 +58,10 @@ public class JarVisitor implements Visitor
          return;
       }
 
-      JarFile jar = new JarFile(file);
-
       boolean matched = false;
-      for (Filter<JarFile> filter : filters)
+      for (Filter filter : filters)
       {
-         matched = filter.accept(jar);
+         matched = filter.accept(file);
          if (matched)
          {
             log.info("File '" + file.getAbsolutePath() + "' was accepted by filter: " + filter.name());

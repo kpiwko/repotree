@@ -17,11 +17,11 @@
 package org.jboss.wfk.repotree;
 
 import java.io.File;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
 import org.jboss.wfk.repotree.filter.MetaInfMavenFilter;
 import org.jboss.wfk.repotree.filter.SignatureFilter;
 import org.jboss.wfk.repotree.signature.Signatures;
@@ -35,7 +35,6 @@ import org.jboss.wfk.repotree.traversal.Visitor;
  */
 public class RepoTree
 {
-   @SuppressWarnings("unchecked")
    public static void main(String[] args) throws Exception
    {
       if (args.length < 2)
@@ -51,18 +50,11 @@ public class RepoTree
       DirectoryTraversal traversal = new DirectoryTraversal(new File(args[1]));
 
       Configuration configuration = new Configuration();
-      configuration.setInstaller(createInstaller(new File(args[0]), list.toArray(new String[0])));
+      configuration.setRepositorySystem(new MavenRepositorySystem(new File(args[0])));
       configuration.setSignatures(loadSignatures(new File("sigs.xml")));
 
       Visitor visitor = new JarVisitor(configuration, new SignatureFilter(), new MetaInfMavenFilter());
       traversal.traverse(visitor);
-   }
-
-   private static MavenInstaller createInstaller(File repository, String... args) throws Exception
-   {
-      PrintStream mavenOutput = new PrintStream(new File("maven.output"));
-      MavenInstaller installer = new MavenInstaller(repository, mavenOutput, mavenOutput, args);
-      return installer;
    }
 
    private static Signatures loadSignatures(File signatures)

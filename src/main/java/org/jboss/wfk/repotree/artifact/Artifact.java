@@ -16,11 +16,13 @@
  */
 package org.jboss.wfk.repotree.artifact;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.maven.model.Model;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
@@ -67,6 +69,15 @@ public class Artifact
       this.extension = extension;
       this.classifier = classifier;
       this.version = version;
+   }
+
+   public Artifact(Model model)
+   {
+      this.groupId = !empty(model.getGroupId()) ? model.getGroupId() : model.getParent().getGroupId();
+      this.artifactId = model.getArtifactId();
+      this.version = !empty(model.getVersion()) ? model.getVersion() : model.getParent().getVersion();
+      this.extension = model.getPackaging();
+      this.classifier = "";
    }
 
    public static Artifact fromTree(String dependencyCoords)
@@ -143,16 +154,9 @@ public class Artifact
       return new Artifact(groupId, artifactId, extension, classifier, version);
    }
 
-   public Map<String, String> coordinates()
+   public org.sonatype.aether.artifact.Artifact attachFile(File file)
    {
-      Map<String, String> coords = new HashMap<String, String>();
-      coords.put("groupId", groupId);
-      coords.put("artifactId", artifactId);
-      coords.put("packaging", extension);
-      coords.put("version", version);
-      coords.put("classifier", classifier);
-
-      return coords;
+      return new DefaultArtifact(groupId, artifactId, classifier, extension, version, null, file);
    }
 
    public String filename()
@@ -189,4 +193,10 @@ public class Artifact
    {
       return (value == null || value.length() <= 0) ? defaultValue : value;
    }
+
+   private static boolean empty(String value)
+   {
+      return value == null || value.length() == 0;
+   }
+
 }

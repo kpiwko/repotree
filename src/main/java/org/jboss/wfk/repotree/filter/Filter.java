@@ -16,17 +16,19 @@
  */
 package org.jboss.wfk.repotree.filter;
 
+import java.io.File;
+
 import org.jboss.wfk.repotree.Configuration;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public interface Filter<T>
+public interface Filter
 {
    String name();
 
-   boolean accept(T element);
+   boolean accept(File file) throws Exception;
 
    void configure(Configuration configuration);
 

@@ -28,21 +28,23 @@ import java.util.jar.Manifest;
 import java.util.logging.Logger;
 
 import org.jboss.wfk.repotree.Configuration;
-import org.jboss.wfk.repotree.MavenInstaller;
 import org.jboss.wfk.repotree.artifact.Artifact;
+import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
 import org.jboss.wfk.repotree.signature.Signatures;
+import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public class SignatureFilter implements Filter<JarFile>
+public class SignatureFilter implements Filter
 {
    private static final Logger log = Logger.getLogger(SignatureFilter.class.getName());
 
    private static final String SIGNATURE_ENTRY_ATTR = "SHA1-Digest-Manifest";
 
-   private MavenInstaller installer;
+   private MavenRepositorySystem system;
+   private RepositorySystemSession session;
    private Signatures signatures;
 
    public SignatureFilter()
@@ -52,11 +54,13 @@ public class SignatureFilter implements Filter<JarFile>
    /*
     * (non-Javadoc)
     * 
-    * @see org.jboss.wfk.repotree.filter.Filter#accept(java.lang.Object)
+    * @see org.jboss.wfk.repotree.filter.Filter#accept(java.io.File)
     */
-   public boolean accept(JarFile element)
+   public boolean accept(File file) throws Exception
    {
-      Enumeration<JarEntry> elements = element.entries();
+      JarFile jar = new JarFile(file);
+
+      Enumeration<JarEntry> elements = jar.entries();
       List<JarEntry> candidates = new ArrayList<JarEntry>();
 
       while (elements.hasMoreElements())
@@ -73,32 +77,23 @@ public class SignatureFilter implements Filter<JarFile>
          return false;
       }
 
-      boolean installed = false;
       for (JarEntry entry : candidates)
       {
-         try
+         String signature = extractSignature(jar, entry);
+         log.info("Signature for: " + file.getName() + " is " + "'" + signature + "'");
+         Artifact artifact = signatures.lookup(signature);
+         if (artifact == null)
          {
-            String signature = extractSignature(element, entry);
-            log.info("Signature for: " + element.getName() + " is " + "'" + signature + "'");
-            Artifact artifact = signatures.lookup(signature);
-            if (artifact == null)
-            {
-               continue;
-            }
-
-            installed = installer.install(new File(element.getName()), artifact.coordinates());
-            if (installed == true)
-            {
-               break;
-            }
+            continue;
          }
-         catch (IOException e)
+
+         if (system.installArtifact(session, artifact.attachFile(file), null))
          {
-            e.printStackTrace();
+            return true;
          }
       }
 
-      return installed;
+      return false;
    }
 
    /*
@@ -108,8 +103,9 @@ public class SignatureFilter implements Filter<JarFile>
     */
    public void configure(Configuration configuration)
    {
-      this.installer = configuration.getInstaller();
+      this.system = configuration.getRepositorySystem();
       this.signatures = configuration.getSignatures();
+      this.session = system.getSession();
    }
 
    /*

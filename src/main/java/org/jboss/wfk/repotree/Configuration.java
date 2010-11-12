@@ -16,6 +16,7 @@
  */
 package org.jboss.wfk.repotree;
 
+import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
 import org.jboss.wfk.repotree.signature.Signatures;
 
 /**
@@ -24,23 +25,24 @@ import org.jboss.wfk.repotree.signature.Signatures;
  */
 public class Configuration
 {
-   private MavenInstaller installer;
    private Signatures signatures;
 
+   private MavenRepositorySystem repositorySystem;
+
    /**
-    * @return the installer
+    * @return the repositorySystem
     */
-   public MavenInstaller getInstaller()
+   public MavenRepositorySystem getRepositorySystem()
    {
-      return installer;
+      return repositorySystem;
    }
 
    /**
-    * @param installer the installer to set
+    * @param repositorySystem the repositorySystem to set
     */
-   public void setInstaller(MavenInstaller installer)
+   public void setRepositorySystem(MavenRepositorySystem repositorySystem)
    {
-      this.installer = installer;
+      this.repositorySystem = repositorySystem;
    }
 
    /**
@@ -58,4 +60,5 @@ public class Configuration
    {
       this.signatures = signatures;
    }
+
 }
