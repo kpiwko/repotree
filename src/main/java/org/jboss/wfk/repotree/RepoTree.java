@@ -18,8 +18,13 @@ package org.jboss.wfk.repotree;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.jboss.wfk.repotree.filter.MetaInfMavenFilter;
+import org.jboss.wfk.repotree.filter.SignatureFilter;
+import org.jboss.wfk.repotree.signature.Signatures;
 import org.jboss.wfk.repotree.traversal.DirectoryTraversal;
 import org.jboss.wfk.repotree.traversal.JarVisitor;
 import org.jboss.wfk.repotree.traversal.Visitor;
@@ -33,11 +38,35 @@ public class RepoTree
    @SuppressWarnings("unchecked")
    public static void main(String[] args) throws Exception
    {
-      PrintStream mavenOutput = new PrintStream(new File("maven.output"));
-      MavenInstaller installer = new MavenInstaller(new File(args[0]), mavenOutput, mavenOutput);
+      if (args.length < 2)
+      {
+         System.err.println("Please specify repository directory and directory to be processed");
+         System.exit(1);
+      }
+
+      List<String> list = new ArrayList<String>(Arrays.asList(args));
+      list.remove(1);
+      list.remove(0);
 
       DirectoryTraversal traversal = new DirectoryTraversal(new File(args[1]));
-      Visitor visitor = new JarVisitor(new MetaInfMavenFilter(installer));
+
+      Configuration configuration = new Configuration();
+      configuration.setInstaller(createInstaller(new File(args[0]), list.toArray(new String[0])));
+      configuration.setSignatures(loadSignatures(new File("sigs.xml")));
+
+      Visitor visitor = new JarVisitor(configuration, new SignatureFilter(), new MetaInfMavenFilter());
       traversal.traverse(visitor);
+   }
+
+   private static MavenInstaller createInstaller(File repository, String... args) throws Exception
+   {
+      PrintStream mavenOutput = new PrintStream(new File("maven.output"));
+      MavenInstaller installer = new MavenInstaller(repository, mavenOutput, mavenOutput, args);
+      return installer;
+   }
+
+   private static Signatures loadSignatures(File signatures)
+   {
+      return new Signatures().load(signatures);
    }
 }

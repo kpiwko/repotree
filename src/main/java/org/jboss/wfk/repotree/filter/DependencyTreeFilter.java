@@ -16,18 +16,50 @@
  */
 package org.jboss.wfk.repotree.filter;
 
+import java.util.jar.JarFile;
+
 import org.jboss.wfk.repotree.Configuration;
+import org.jboss.wfk.repotree.MavenInstaller;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public interface Filter<T>
+public class DependencyTreeFilter implements Filter<JarFile>
 {
-   String name();
+   private MavenInstaller installer;
 
-   boolean accept(T element);
+   public DependencyTreeFilter()
+   {
+   }
 
-   void configure(Configuration configuration);
+   /*
+    * (non-Javadoc)
+    * 
+    * @see org.jboss.wfk.repotree.filter.Filter#accept(java.lang.Object)
+    */
+   public boolean accept(JarFile element)
+   {
+      return false;
+   }
 
+   /*
+    * (non-Javadoc)
+    * 
+    * @see org.jboss.wfk.repotree.filter.Filter#name()
+    */
+   public String name()
+   {
+      return "dependency-tree";
+   }
+
+   /*
+    * (non-Javadoc)
+    * 
+    * @see org.jboss.wfk.repotree.filter.Filter#configure(org.jboss.wfk.repotree.Configuration)
+    */
+   public void configure(Configuration configuration)
+   {
+      this.installer = configuration.getInstaller();
+   }
 }

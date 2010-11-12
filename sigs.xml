@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<signatures>
+   <signature>
+      <key>BK2XIpvLA3AnD9gDECPnSC8rux8=</key>
+      <groupId>javax.faces</groupId>
+      <artifactId>jsf-api</artifactId>
+      <version>1.2_13</version>
+   </signature>
+   <signature>
+      <key>3m+KU0exYbUxPDX2JOgBRyBKbac=</key>
+      <coordinates>javax.faces:jsf-impl:1.2_13</coordinates>
+   </signature>
+</signatures>

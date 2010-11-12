@@ -14,20 +14,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.wfk.repotree.filter;
+package org.jboss.wfk.repotree.signature;
 
-import org.jboss.wfk.repotree.Configuration;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jboss.wfk.repotree.artifact.Artifact;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public interface Filter<T>
+public class Signatures
 {
-   String name();
+   private Map<String, Artifact> db;
 
-   boolean accept(T element);
+   public Signatures()
+   {
+      this.db = new HashMap<String, Artifact>();
+   }
 
-   void configure(Configuration configuration);
+   public Artifact lookup(String signature)
+   {
+      if (signature == null)
+      {
+         return null;
+      }
 
+      return db.get(signature);
+   }
+
+   public Signatures load(File file)
+   {
+      SignatureLoader loader = new SignatureLoader(file);
+      List<Signature> list = new ArrayList<Signature>();
+
+      loader.levelTraversal(list, 2);
+
+      for (Signature sig : list)
+      {
+         this.db.put(sig.getSignature(), sig.getArtifact());
+      }
+
+      return this;
+   }
 }

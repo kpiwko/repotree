@@ -17,11 +17,12 @@
 package org.jboss.wfk.repotree.traversal;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
+import org.jboss.wfk.repotree.Configuration;
 import org.jboss.wfk.repotree.filter.Filter;
 
 /**
@@ -34,9 +35,15 @@ public class JarVisitor implements Visitor
 
    private List<Filter<JarFile>> filters;
 
-   public JarVisitor(Filter<JarFile>... filters)
+   public JarVisitor(Configuration configuration, Filter<JarFile>... filters)
    {
-      this.filters = Arrays.asList(filters);
+      this.filters = new ArrayList<Filter<JarFile>>(filters.length);
+      for (Filter<JarFile> filter : filters)
+      {
+         filter.configure(configuration);
+         this.filters.add(filter);
+      }
+
    }
 
    /*

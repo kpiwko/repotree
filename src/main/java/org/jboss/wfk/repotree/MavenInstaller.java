@@ -22,6 +22,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.cli.MavenCli;
 
@@ -31,11 +32,10 @@ import org.apache.maven.cli.MavenCli;
  */
 public class MavenInstaller
 {
-   private MavenCli maven;
    private String currentDir;
    private String repoDir;
 
-   private List<String> args;
+   private List<String> staticArgs;
 
    private PrintStream out;
    private PrintStream err;
@@ -47,13 +47,18 @@ public class MavenInstaller
 
    public MavenInstaller(File localRepositoryPath, PrintStream out, PrintStream err, String... args)
    {
-      this.args = Arrays.asList(args);
-      this.maven = new MavenCli();
+      this.staticArgs = new ArrayList<String>();
+      this.staticArgs.add("install:install-file");
+      // this.staticArgs.add("--batch-mode");
+      this.staticArgs.add("-DinteractiveMode=false");
+      this.staticArgs.addAll(Arrays.asList(args));
+
       this.out = out;
       this.err = err;
       try
       {
          this.repoDir = localRepositoryPath.getCanonicalPath();
+         this.staticArgs.add("-DlocalRepositoryPath=" + repoDir);
       }
       catch (IOException e)
       {
@@ -72,18 +77,37 @@ public class MavenInstaller
 
    public boolean install(File artifact, File pom) throws IOException
    {
-      List<String> args = new ArrayList<String>(this.args);
+      synchronized (this)
+      {
+         List<String> args = new ArrayList<String>(this.staticArgs);
 
-      args.add("install:install-file");
-      args.add("--batch-mode");
-      args.add("-DinteractiveMode=false");
-      args.add("-DlocalRepositoryPath=" + repoDir);
-      args.add("-DupdateReleaseInfo=true");
-      args.add("-Dfile=" + artifact.getCanonicalPath());
-      args.add("-DpomFile=" + pom.getCanonicalPath());
+         args.add("-Dfile=" + artifact.getCanonicalPath());
+         args.add("-DpomFile=" + pom.getCanonicalPath());
 
-      int result = maven.doMain(args.toArray(new String[0]), currentDir, out, err);
+         MavenCli maven = new MavenCli();
+         int result = maven.doMain(args.toArray(new String[0]), currentDir, out, err);
 
-      return result == 0;
+         return result == 0;
+      }
+   }
+
+   public boolean install(File artifact, Map<String, String> properties) throws IOException
+   {
+      synchronized (this)
+      {
+         List<String> args = new ArrayList<String>(this.staticArgs);
+         args.add("-Dfile=" + artifact.getCanonicalPath());
+         args.add("-DgeneratePom=true");
+
+         for (Map.Entry<String, String> entry : properties.entrySet())
+         {
+            args.add("-D" + entry.getKey() + "=" + entry.getValue());
+         }
+
+         MavenCli maven = new MavenCli();
+         int result = maven.doMain(args.toArray(new String[0]), currentDir, out, err);
+
+         return result == 0;
+      }
    }
 }

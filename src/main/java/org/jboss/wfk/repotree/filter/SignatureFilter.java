@@ -17,30 +17,35 @@
 package org.jboss.wfk.repotree.filter;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.logging.Logger;
 
 import org.jboss.wfk.repotree.Configuration;
-import org.jboss.wfk.repotree.IOUtil;
 import org.jboss.wfk.repotree.MavenInstaller;
+import org.jboss.wfk.repotree.artifact.Artifact;
+import org.jboss.wfk.repotree.signature.Signatures;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public class MetaInfMavenFilter implements Filter<JarFile>
+public class SignatureFilter implements Filter<JarFile>
 {
-   private static final Logger log = Logger.getLogger(MetaInfMavenFilter.class.getName());
+   private static final Logger log = Logger.getLogger(SignatureFilter.class.getName());
+
+   private static final String SIGNATURE_ENTRY_ATTR = "SHA1-Digest-Manifest";
 
    private MavenInstaller installer;
+   private Signatures signatures;
 
-   public MetaInfMavenFilter()
+   public SignatureFilter()
    {
    }
 
@@ -57,7 +62,7 @@ public class MetaInfMavenFilter implements Filter<JarFile>
       while (elements.hasMoreElements())
       {
          JarEntry entry = elements.nextElement();
-         if (!entry.isDirectory() && isPomFile(entry.getName()))
+         if (!entry.isDirectory() && isSignatureFile(entry.getName()))
          {
             candidates.add(entry);
          }
@@ -73,10 +78,15 @@ public class MetaInfMavenFilter implements Filter<JarFile>
       {
          try
          {
-            File pom = File.createTempFile("pom-", ".xml");
+            String signature = extractSignature(element, entry);
+            log.info("Signature for: " + element.getName() + " is " + "'" + signature + "'");
+            Artifact artifact = signatures.lookup(signature);
+            if (artifact == null)
+            {
+               continue;
+            }
 
-            IOUtil.copy(element.getInputStream(entry), new FileOutputStream(pom));
-            installed = installer.install(new File(element.getName()), pom);
+            installed = installer.install(new File(element.getName()), artifact.coordinates());
             if (installed == true)
             {
                break;
@@ -99,6 +109,7 @@ public class MetaInfMavenFilter implements Filter<JarFile>
    public void configure(Configuration configuration)
    {
       this.installer = configuration.getInstaller();
+      this.signatures = configuration.getSignatures();
    }
 
    /*
@@ -108,12 +119,29 @@ public class MetaInfMavenFilter implements Filter<JarFile>
     */
    public String name()
    {
-      return "META-INF/maven";
+      return "Signature";
    }
 
-   private boolean isPomFile(String name)
+   private String extractSignature(JarFile jar, JarEntry signatureEntry)
    {
-      return name.startsWith("META-INF/maven") && name.endsWith("pom.xml");
+      try
+      {
+         Manifest signature = new Manifest();
+         signature.read(jar.getInputStream(signatureEntry));
+         Attributes attrs = signature.getMainAttributes();
+         return attrs.getValue(SIGNATURE_ENTRY_ATTR);
+      }
+      catch (IOException e)
+      {
+         log.warning("Unable to extract signature from a signed jar file: " + jar.getName() + ", cause: " + e.getMessage());
+      }
+
+      return null;
+   }
+
+   private boolean isSignatureFile(String name)
+   {
+      return name.startsWith("META-INF") && name.toUpperCase().endsWith(".SF");
    }
 
 }

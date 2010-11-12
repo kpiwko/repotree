@@ -14,20 +14,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.wfk.repotree.filter;
+package org.jboss.wfk.repotree;
 
-import org.jboss.wfk.repotree.Configuration;
+import org.jboss.wfk.repotree.signature.Signatures;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public interface Filter<T>
+public class Configuration
 {
-   String name();
+   private MavenInstaller installer;
+   private Signatures signatures;
 
-   boolean accept(T element);
+   /**
+    * @return the installer
+    */
+   public MavenInstaller getInstaller()
+   {
+      return installer;
+   }
 
-   void configure(Configuration configuration);
+   /**
+    * @param installer the installer to set
+    */
+   public void setInstaller(MavenInstaller installer)
+   {
+      this.installer = installer;
+   }
 
+   /**
+    * @return the signatures
+    */
+   public Signatures getSignatures()
+   {
+      return signatures;
+   }
+
+   /**
+    * @param signatures the signatures to set
+    */
+   public void setSignatures(Signatures signatures)
+   {
+      this.signatures = signatures;
+   }
 }
