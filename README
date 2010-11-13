@@ -1,8 +1,8 @@
 Utility to recursively install artifacts into a Maven repository
-Based on Maven 3.
+Based on Aether 1.7
 
 usage:
 
 mvn package
 
-java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install> [additional arguments to Maven]
+java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install> 
