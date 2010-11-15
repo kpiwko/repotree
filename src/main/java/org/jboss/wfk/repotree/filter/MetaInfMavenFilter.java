@@ -74,7 +74,7 @@ public class MetaInfMavenFilter implements Filter
          return false;
       }
 
-      for (JarEntry entry : candidates)
+      for (JarEntry entry : guess(file, candidates))
       {
          try
          {
@@ -120,7 +120,49 @@ public class MetaInfMavenFilter implements Filter
 
    private boolean isPomFile(String name)
    {
-      return name.startsWith("META-INF/maven") && name.endsWith("pom.xml");
+      return name.startsWith("META-INF/maven") && name.endsWith("/pom.xml");
+   }
+
+   private List<JarEntry> guess(File file, List<JarEntry> candidates)
+   {
+      log.fine("Filtering " + candidates.size() + " candidates for Maven pom.xml file");
+
+      if (candidates == null || candidates.size() <= 1)
+      {
+         return candidates;
+      }
+
+      List<JarEntry> filtered = new ArrayList<JarEntry>();
+
+      // remove jar suffix from the artifact file name
+      String jarName = file.getName();
+      if (jarName.endsWith(".jar"))
+      {
+         jarName = jarName.substring(0, jarName.lastIndexOf(".jar"));
+      }
+
+      for (JarEntry candidate : candidates)
+      {
+         String name = candidate.getName();
+         name = name.substring(0, name.lastIndexOf("/pom.xml"));
+         name = name.substring(name.lastIndexOf("/") + 1);
+
+         if (name.startsWith(jarName) || jarName.startsWith(name))
+         {
+            filtered.add(candidate);
+         }
+      }
+
+      // omit filter if no matches found
+      if (filtered.isEmpty())
+      {
+         log.fine("Filtering removed all poms, returning original candidates collection");
+         return candidates;
+      }
+
+      log.fine("After filtering, there are " + filtered.size() + " candidates available");
+      return filtered;
+
    }
 
 }
