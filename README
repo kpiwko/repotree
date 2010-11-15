@@ -1,8 +1,8 @@
-Utility to recursively install artifacts into a Maven repository
+Utility to recursively install artifacts from a directory into a local Maven repository
 Based on Aether 1.7
 
 usage:
 
 mvn package
 
-java -jar target/repotree-jar-with-dependencies <path-to-repository> <directory-to-mass-install> 
+java -jar target/repotree-jar-with-dependencies -r <local-repository> [-f <matching-filter>]* [-d <directory-to-be-traversed]+ [-s <signature-file]*
