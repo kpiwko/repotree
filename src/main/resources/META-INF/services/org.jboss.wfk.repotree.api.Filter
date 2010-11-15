@@ -1,0 +1,2 @@
+org.jboss.wfk.repotree.filter.SignatureFilter
+org.jboss.wfk.repotree.filter.MetaInfMavenFilter

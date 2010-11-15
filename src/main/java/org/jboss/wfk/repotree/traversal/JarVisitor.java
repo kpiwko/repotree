@@ -18,11 +18,12 @@ package org.jboss.wfk.repotree.traversal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.jboss.wfk.repotree.Configuration;
-import org.jboss.wfk.repotree.filter.Filter;
+import org.jboss.wfk.repotree.api.Configuration;
+import org.jboss.wfk.repotree.api.Filter;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
@@ -34,15 +35,19 @@ public class JarVisitor implements Visitor
 
    private List<Filter> filters;
 
-   public JarVisitor(Configuration configuration, Filter... filters)
+   public JarVisitor(Configuration configuration, Collection<Filter> filters)
    {
-      this.filters = new ArrayList<Filter>(filters.length);
+      this.filters = new ArrayList<Filter>(filters.size());
       for (Filter filter : filters)
       {
          filter.configure(configuration);
          this.filters.add(filter);
       }
+   }
 
+   public JarVisitor(Configuration configuration)
+   {
+      this(configuration, configuration.getFilterPlugins());
    }
 
    /*

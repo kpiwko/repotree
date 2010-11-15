@@ -17,6 +17,7 @@
 package org.jboss.wfk.repotree.signature;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,7 @@ public class Signatures
       return db.get(signature);
    }
 
-   public Signatures load(File file)
+   public Signatures load(File file) throws IOException
    {
       SignatureLoader loader = new SignatureLoader(file);
       List<Signature> list = new ArrayList<Signature>();

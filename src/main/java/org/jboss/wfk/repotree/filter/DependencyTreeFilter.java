@@ -18,7 +18,8 @@ package org.jboss.wfk.repotree.filter;
 
 import java.io.File;
 
-import org.jboss.wfk.repotree.Configuration;
+import org.jboss.wfk.repotree.api.Configuration;
+import org.jboss.wfk.repotree.api.Filter;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>

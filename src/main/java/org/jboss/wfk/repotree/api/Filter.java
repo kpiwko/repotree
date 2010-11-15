@@ -14,29 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.wfk.repotree;
+package org.jboss.wfk.repotree.api;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.File;
+
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
  * 
  */
-public class IOUtil
+public interface Filter
 {
-   public static void copy(InputStream input, OutputStream output) throws IOException
-   {
-      final byte[] buf = new byte[8096];
-      int len;
+   String name();
 
-      while ((len = input.read(buf)) > 0)
-      {
-         output.write(buf, 0, len);
-      }
+   boolean accept(File file) throws Exception;
 
-      input.close();
-      output.close();
-   }
+   void configure(Configuration configuration);
+
 }

@@ -27,7 +27,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Logger;
 
-import org.jboss.wfk.repotree.Configuration;
+import org.jboss.wfk.repotree.api.Configuration;
+import org.jboss.wfk.repotree.api.Filter;
 import org.jboss.wfk.repotree.artifact.Artifact;
 import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
 import org.jboss.wfk.repotree.signature.Signatures;

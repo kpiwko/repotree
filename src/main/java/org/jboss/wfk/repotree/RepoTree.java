@@ -17,14 +17,8 @@
 package org.jboss.wfk.repotree;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
-import org.jboss.wfk.repotree.filter.MetaInfMavenFilter;
-import org.jboss.wfk.repotree.filter.SignatureFilter;
-import org.jboss.wfk.repotree.signature.Signatures;
+import org.jboss.wfk.repotree.api.Configuration;
 import org.jboss.wfk.repotree.traversal.DirectoryTraversal;
 import org.jboss.wfk.repotree.traversal.JarVisitor;
 import org.jboss.wfk.repotree.traversal.Visitor;
@@ -35,30 +29,19 @@ import org.jboss.wfk.repotree.traversal.Visitor;
  */
 public class RepoTree
 {
+
    public static void main(String[] args) throws Exception
    {
-      if (args.length < 2)
+
+      CommandLineConfigurationBuilder builder = new CommandLineConfigurationBuilder(args);
+      Configuration configuration = builder.build();
+      Visitor visitor = new JarVisitor(configuration);
+
+      for (File dir : configuration.getDirectories())
       {
-         System.err.println("Please specify repository directory and directory to be processed");
-         System.exit(1);
+         DirectoryTraversal traversal = new DirectoryTraversal(dir);
+         traversal.traverse(visitor);
       }
-
-      List<String> list = new ArrayList<String>(Arrays.asList(args));
-      list.remove(1);
-      list.remove(0);
-
-      DirectoryTraversal traversal = new DirectoryTraversal(new File(args[1]));
-
-      Configuration configuration = new Configuration();
-      configuration.setRepositorySystem(new MavenRepositorySystem(new File(args[0])));
-      configuration.setSignatures(loadSignatures(new File("sigs.xml")));
-
-      Visitor visitor = new JarVisitor(configuration, new SignatureFilter(), new MetaInfMavenFilter());
-      traversal.traverse(visitor);
    }
 
-   private static Signatures loadSignatures(File signatures)
-   {
-      return new Signatures().load(signatures);
-   }
 }

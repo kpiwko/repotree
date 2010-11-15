@@ -14,7 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.wfk.repotree;
+package org.jboss.wfk.repotree.api;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
 import org.jboss.wfk.repotree.signature.Signatures;
@@ -29,6 +33,10 @@ public class Configuration
 
    private MavenRepositorySystem repositorySystem;
 
+   private Collection<Filter> filterPlugins;
+
+   private List<File> directories;
+
    /**
     * @return the repositorySystem
     */
@@ -40,9 +48,10 @@ public class Configuration
    /**
     * @param repositorySystem the repositorySystem to set
     */
-   public void setRepositorySystem(MavenRepositorySystem repositorySystem)
+   public Configuration setRepositorySystem(MavenRepositorySystem repositorySystem)
    {
       this.repositorySystem = repositorySystem;
+      return this;
    }
 
    /**
@@ -56,9 +65,43 @@ public class Configuration
    /**
     * @param signatures the signatures to set
     */
-   public void setSignatures(Signatures signatures)
+   public Configuration setSignatures(Signatures signatures)
    {
       this.signatures = signatures;
+      return this;
+   }
+
+   /**
+    * @return the filterPlugins
+    */
+   public Collection<Filter> getFilterPlugins()
+   {
+      return filterPlugins;
+   }
+
+   /**
+    * @param filterPlugins the filterPlugins to set
+    */
+   public Configuration setFilterPlugins(Collection<Filter> filterPlugins)
+   {
+      this.filterPlugins = filterPlugins;
+      return this;
+   }
+
+   /**
+    * @return the directories
+    */
+   public List<File> getDirectories()
+   {
+      return directories;
+   }
+
+   /**
+    * @param directories the directories to set
+    */
+   public void setDirectories(List<File> directories)
+   {
+      this.directories = directories;
    }
 
 }
