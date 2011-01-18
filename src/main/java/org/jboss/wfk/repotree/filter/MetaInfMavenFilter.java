@@ -45,6 +45,8 @@ public class MetaInfMavenFilter implements Filter
    private MavenRepositorySystem system;
    private RepositorySystemSession session;
 
+   private boolean installPoms;
+
    public MetaInfMavenFilter()
    {
    }
@@ -84,8 +86,25 @@ public class MetaInfMavenFilter implements Filter
 
             Artifact artifact = new Artifact(model);
 
+            // install jar
             if (system.installArtifact(session, artifact.attachFile(file), null))
             {
+               if (installPoms)
+               {
+                  // install pom file for jar
+                  try
+                  {
+                     Artifact pom = new Artifact(artifact.getGroupId(), artifact.getArtifactId(), "pom", artifact.getClassifier(), artifact.getVersion());
+                     File pomFile = FileUtils.wrap(jar.getInputStream(entry));
+                     system.installArtifact(session, pom.attachFile(pomFile), null);
+                     pomFile.delete();
+                  }
+                  catch (IOException e)
+                  {
+                     log.warning("Unable to install a pom file for the correctly installed artifact: " + artifact.toString());
+                  }
+               }
+
                return true;
             }
          }
@@ -101,12 +120,15 @@ public class MetaInfMavenFilter implements Filter
    /*
     * (non-Javadoc)
     * 
-    * @see org.jboss.wfk.repotree.filter.Filter#configure(org.jboss.wfk.repotree.Configuration)
+    * @see
+    * org.jboss.wfk.repotree.filter.Filter#configure(org.jboss.wfk.repotree.
+    * Configuration)
     */
    public void configure(Configuration configuration)
    {
       this.system = configuration.getRepositorySystem();
       this.session = system.getSession();
+      this.installPoms = configuration.isInstallingPoms();
    }
 
    /*

@@ -158,7 +158,7 @@ public class Artifact
    {
       return new DefaultArtifact(groupId, artifactId, classifier, extension, version, null, file);
    }
-
+   
    public String filename()
    {
       StringBuilder sb = new StringBuilder();
@@ -197,6 +197,46 @@ public class Artifact
    private static boolean empty(String value)
    {
       return value == null || value.length() == 0;
+   }
+
+   /**
+    * @return the groupId
+    */
+   public String getGroupId()
+   {
+      return groupId;
+   }
+
+   /**
+    * @return the artifactId
+    */
+   public String getArtifactId()
+   {
+      return artifactId;
+   }
+
+   /**
+    * @return the extension
+    */
+   public String getExtension()
+   {
+      return extension;
+   }
+
+   /**
+    * @return the classifier
+    */
+   public String getClassifier()
+   {
+      return classifier;
+   }
+
+   /**
+    * @return the version
+    */
+   public String getVersion()
+   {
+      return version;
    }
 
 }

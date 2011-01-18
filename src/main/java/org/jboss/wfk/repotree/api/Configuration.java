@@ -37,6 +37,8 @@ public class Configuration
 
    private List<File> directories;
 
+   private boolean installPoms;
+
    /**
     * @return the repositorySystem
     */
@@ -99,9 +101,27 @@ public class Configuration
    /**
     * @param directories the directories to set
     */
-   public void setDirectories(List<File> directories)
+   public Configuration setDirectories(List<File> directories)
    {
       this.directories = directories;
+      return this;
+   }
+
+   /**
+    * @return the installPoms
+    */
+   public boolean isInstallingPoms()
+   {
+      return installPoms;
+   }
+
+   /**
+    * @param installPoms the installPoms to set
+    */
+   public Configuration setInstallingPoms(boolean installPoms)
+   {
+      this.installPoms = installPoms;
+      return this;
    }
 
 }

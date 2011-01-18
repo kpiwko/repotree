@@ -141,6 +141,12 @@ public class CommandLineConfigurationBuilder
          }
          configuration.setDirectories(dirs);
       }
+      
+      // install pom files as well
+      if(cmd.hasOption("install-poms"))
+      {
+         configuration.setInstallingPoms(true);
+      }
 
       return configuration;
 
@@ -188,6 +194,11 @@ public class CommandLineConfigurationBuilder
                .withDescription("A name of filter to be used for resolution of Maven artifacts. If no filter is specified, all available filters are selected. Currently available filters are: " + availableFilters())
                .create('f');
       options.addOption(outputOpt);
+      
+      Option installPoms = OptionBuilder.withLongOpt("install-poms")
+               .withDescription("Install pom.xml files into repository if available")
+               .create('i');
+      options.addOption(installPoms);
 
       return options;
    }

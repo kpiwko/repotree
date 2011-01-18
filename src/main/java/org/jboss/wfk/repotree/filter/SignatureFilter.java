@@ -81,7 +81,7 @@ public class SignatureFilter implements Filter
       for (JarEntry entry : candidates)
       {
          String signature = extractSignature(jar, entry);
-         log.info("Signature for: " + file.getName() + " is " + "'" + signature + "'");
+         log.fine("Signature for: " + file.getName() + " is " + "'" + signature + "'");
          Artifact artifact = signatures.lookup(signature);
          if (artifact == null)
          {
