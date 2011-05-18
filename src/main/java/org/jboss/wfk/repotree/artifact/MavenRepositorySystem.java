@@ -16,12 +16,12 @@
  */
 package org.jboss.wfk.repotree.artifact;
 
-import java.io.File;
-
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.jboss.wfk.repotree.api.Configuration;
+import org.jboss.wfk.repotree.bom.BomCreator;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.installation.InstallRequest;
@@ -39,30 +39,44 @@ import org.sonatype.aether.repository.LocalRepository;
 public class MavenRepositorySystem
 {
    private LocalRepository localRepository;
-
    private final RepositorySystem system;
 
-   public MavenRepositorySystem(File localRepositoryDir)
+   private Configuration configuration;
+
+   private MavenRepositorySystemSession session;
+
+   public MavenRepositorySystem(Configuration configuration)
    {
-      this.localRepository = new LocalRepository(localRepositoryDir);
+      this.localRepository = new LocalRepository(configuration.getLocalRepository());
       this.system = getRepositorySystem();
+      this.configuration = configuration;
    }
 
    /**
     * Spawns a working session from the repository system. Working session is
     * shared between all Maven based commands
+    * 
     * @param system A repository system
     * @param settings A configuration of current session, such as local or remote repositories and listeners
     * @return The working session for dependency resolution
     */
-   public RepositorySystemSession getSession()
+   public synchronized RepositorySystemSession getSession()
    {
-      MavenRepositorySystemSession session = new MavenRepositorySystemSession();
-      session.setLocalRepositoryManager(system.newLocalRepositoryManager(localRepository));
-      session.setTransferListener(new LogTransferListerer());
-      session.setRepositoryListener(new LogRepositoryListener());
+      if (session == null)
+      {
+         this.session = new MavenRepositorySystemSession();
+         this.session.setLocalRepositoryManager(system.newLocalRepositoryManager(localRepository));
+         this.session.setTransferListener(new LogTransferListerer());
+         this.session.setRepositoryListener(new LogRepositoryListener());
+         return session;
+      }
 
       return session;
+   }
+
+   public boolean installArtifact(org.sonatype.aether.artifact.Artifact artifact, Metadata metadata)
+   {
+      return installArtifact(getSession(), artifact, metadata);
    }
 
    public boolean installArtifact(RepositorySystemSession session, org.sonatype.aether.artifact.Artifact artifact, Metadata metadata)
@@ -70,12 +84,26 @@ public class MavenRepositorySystem
       try
       {
          InstallRequest request = new InstallRequest();
+
+         String versionSuffix = configuration.getVersionSuffix();
+         if (versionSuffix != null && versionSuffix != "")
+         {
+            artifact = artifact.setVersion(artifact.getVersion() + versionSuffix);
+         }
+
          request.addArtifact(artifact);
          if (metadata != null)
          {
             request.addMetadata(metadata);
          }
          system.install(session, request);
+
+         BomCreator bom = configuration.getBomCreator();
+         if (bom != null)
+         {
+            bom.append(artifact);
+         }
+
          return true;
       }
       catch (InstallationException e)
@@ -89,6 +117,7 @@ public class MavenRepositorySystem
    /**
     * Finds a current implementation of repository system.
     * A {@link RepositorySystem} is an entry point to dependency resolution
+    * 
     * @return A repository system
     */
    private RepositorySystem getRepositorySystem()

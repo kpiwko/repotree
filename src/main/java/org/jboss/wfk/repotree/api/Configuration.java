@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
+import org.jboss.wfk.repotree.bom.BomCreator;
+import org.jboss.wfk.repotree.gav.Gavs;
 import org.jboss.wfk.repotree.signature.Signatures;
 
 /**
@@ -29,30 +31,38 @@ import org.jboss.wfk.repotree.signature.Signatures;
  */
 public class Configuration
 {
+   private String versionSuffix = "xx";
+
    private Signatures signatures;
 
-   private MavenRepositorySystem repositorySystem;
+   private Gavs gavs;
 
    private Collection<Filter> filterPlugins;
 
    private List<File> directories;
 
+   private File localRepository;
+
    private boolean installPoms;
 
+   private MavenRepositorySystem maven;
+   
+   private BomCreator bomCreator;
+   
    /**
     * @return the repositorySystem
     */
    public MavenRepositorySystem getRepositorySystem()
    {
-      return repositorySystem;
+      return maven;
    }
-
+   
    /**
-    * @param repositorySystem the repositorySystem to set
+    * @param maven the maven to set
     */
-   public Configuration setRepositorySystem(MavenRepositorySystem repositorySystem)
+   public Configuration setRepositorySystem(MavenRepositorySystem maven)
    {
-      this.repositorySystem = repositorySystem;
+      this.maven = maven;
       return this;
    }
 
@@ -122,6 +132,73 @@ public class Configuration
    {
       this.installPoms = installPoms;
       return this;
+   }
+
+   /**
+    * @param versionSuffix the versionSuffix to set
+    */
+   public Configuration setVersionSuffix(String versionSuffix)
+   {
+      this.versionSuffix = versionSuffix;
+      return this;
+   }
+
+   /**
+    * @return the versionSuffix
+    */
+   public String getVersionSuffix()
+   {
+      return versionSuffix;
+   }
+
+   /**
+    * @param gavs the gavs to set
+    */
+   public Configuration setGavs(Gavs gavs)
+   {
+      this.gavs = gavs;
+      return this;
+   }
+
+   /**
+    * @return the gavs
+    */
+   public Gavs getGavs()
+   {
+      return gavs;
+   }
+
+   /**
+    * @return the localRepository
+    */
+   public File getLocalRepository()
+   {
+      return localRepository;
+   }
+
+   /**
+    * @param localRepository the localRepository to set
+    */
+   public Configuration setLocalRepository(File localRepository)
+   {
+      this.localRepository = localRepository;
+      return this;
+   }
+   
+   /**
+    * @return the bomCreator
+    */
+   public BomCreator getBomCreator()
+   {
+      return bomCreator;
+   }
+   
+   /**
+    * @param bomCreator the bomCreator to set
+    */
+   public void setBomCreator(BomCreator bomCreator)
+   {
+      this.bomCreator = bomCreator;
    }
 
 }

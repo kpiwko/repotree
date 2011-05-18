@@ -30,9 +30,6 @@ import java.util.logging.Logger;
 import org.jboss.wfk.repotree.api.Configuration;
 import org.jboss.wfk.repotree.api.Filter;
 import org.jboss.wfk.repotree.artifact.Artifact;
-import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
-import org.jboss.wfk.repotree.signature.Signatures;
-import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
@@ -44,13 +41,7 @@ public class SignatureFilter implements Filter
 
    private static final String SIGNATURE_ENTRY_ATTR = "SHA1-Digest-Manifest";
 
-   private MavenRepositorySystem system;
-   private RepositorySystemSession session;
-   private Signatures signatures;
-
-   public SignatureFilter()
-   {
-   }
+   private Configuration configuration;
 
    /*
     * (non-Javadoc)
@@ -82,13 +73,13 @@ public class SignatureFilter implements Filter
       {
          String signature = extractSignature(jar, entry);
          log.fine("Signature for: " + file.getName() + " is " + "'" + signature + "'");
-         Artifact artifact = signatures.lookup(signature);
+         Artifact artifact = configuration.getSignatures().lookup(signature);
          if (artifact == null)
          {
             continue;
          }
 
-         if (system.installArtifact(session, artifact.attachFile(file), null))
+         if (configuration.getRepositorySystem().installArtifact(artifact.attachFile(file), null))
          {
             return true;
          }
@@ -104,9 +95,7 @@ public class SignatureFilter implements Filter
     */
    public void configure(Configuration configuration)
    {
-      this.system = configuration.getRepositorySystem();
-      this.signatures = configuration.getSignatures();
-      this.session = system.getSession();
+      this.configuration = configuration;
    }
 
    /*

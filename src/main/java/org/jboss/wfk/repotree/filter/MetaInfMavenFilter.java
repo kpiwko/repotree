@@ -31,8 +31,6 @@ import org.apache.maven.model.io.ModelReader;
 import org.jboss.wfk.repotree.api.Configuration;
 import org.jboss.wfk.repotree.api.Filter;
 import org.jboss.wfk.repotree.artifact.Artifact;
-import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
 
 /**
  * @author <a href="mailto:kpiwko@redhat.com">Karel Piwko</a>
@@ -42,14 +40,7 @@ public class MetaInfMavenFilter implements Filter
 {
    private static final Logger log = Logger.getLogger(MetaInfMavenFilter.class.getName());
 
-   private MavenRepositorySystem system;
-   private RepositorySystemSession session;
-
-   private boolean installPoms;
-
-   public MetaInfMavenFilter()
-   {
-   }
+   private Configuration configuration;
 
    /*
     * (non-Javadoc)
@@ -87,16 +78,16 @@ public class MetaInfMavenFilter implements Filter
             Artifact artifact = new Artifact(model);
 
             // install jar
-            if (system.installArtifact(session, artifact.attachFile(file), null))
+            if (configuration.getRepositorySystem().installArtifact(artifact.attachFile(file), null))
             {
-               if (installPoms)
+               if (configuration.isInstallingPoms())
                {
                   // install pom file for jar
                   try
                   {
                      Artifact pom = new Artifact(artifact.getGroupId(), artifact.getArtifactId(), "pom", artifact.getClassifier(), artifact.getVersion());
                      File pomFile = FileUtils.wrap(jar.getInputStream(entry));
-                     system.installArtifact(session, pom.attachFile(pomFile), null);
+                     configuration.getRepositorySystem().installArtifact(pom.attachFile(pomFile), null);
                      pomFile.delete();
                   }
                   catch (IOException e)
@@ -126,9 +117,7 @@ public class MetaInfMavenFilter implements Filter
     */
    public void configure(Configuration configuration)
    {
-      this.system = configuration.getRepositorySystem();
-      this.session = system.getSession();
-      this.installPoms = configuration.isInstallingPoms();
+      this.configuration = configuration;
    }
 
    /*

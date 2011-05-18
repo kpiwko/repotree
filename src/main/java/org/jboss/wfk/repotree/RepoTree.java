@@ -19,6 +19,8 @@ package org.jboss.wfk.repotree;
 import java.io.File;
 
 import org.jboss.wfk.repotree.api.Configuration;
+import org.jboss.wfk.repotree.bom.BomCreator;
+import org.jboss.wfk.repotree.bom.XmlUtils;
 import org.jboss.wfk.repotree.traversal.DirectoryTraversal;
 import org.jboss.wfk.repotree.traversal.JarVisitor;
 import org.jboss.wfk.repotree.traversal.Visitor;
@@ -41,6 +43,12 @@ public class RepoTree
       {
          DirectoryTraversal traversal = new DirectoryTraversal(dir);
          traversal.traverse(visitor);
+      }
+
+      BomCreator bom = configuration.getBomCreator();
+      if (bom != null)
+      {
+         configuration.getRepositorySystem().installArtifact(bom.getArtifact().attachFile(XmlUtils.wrapAsFile(bom.getDocument())), null);
       }
    }
 

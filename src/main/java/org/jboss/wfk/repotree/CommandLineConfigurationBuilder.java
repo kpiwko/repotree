@@ -33,7 +33,10 @@ import org.apache.commons.cli.ParseException;
 import org.jboss.wfk.repotree.api.Configuration;
 import org.jboss.wfk.repotree.api.Filter;
 import org.jboss.wfk.repotree.api.ServiceLoader;
+import org.jboss.wfk.repotree.artifact.Artifact;
 import org.jboss.wfk.repotree.artifact.MavenRepositorySystem;
+import org.jboss.wfk.repotree.bom.BomCreator;
+import org.jboss.wfk.repotree.gav.Gavs;
 import org.jboss.wfk.repotree.signature.Signatures;
 
 public class CommandLineConfigurationBuilder
@@ -61,14 +64,6 @@ public class CommandLineConfigurationBuilder
       }
       catch (ParseException e)
       {
-         // help
-         if (cmd != null && cmd.hasOption("help"))
-         {
-            System.out.println("Load a directory into the Maven local repository");
-            showUsage(options);
-            System.exit(0);
-         }
-
          System.out.println(e.getMessage());
          showUsage(options);
          System.exit(1);
@@ -109,7 +104,7 @@ public class CommandLineConfigurationBuilder
 
       if (cmd.hasOption("local-repository"))
       {
-         configuration.setRepositorySystem(new MavenRepositorySystem(new File(cmd.getOptionValue("local-repository"))));
+         configuration.setLocalRepository(new File(cmd.getOptionValue("local-repository")));
       }
 
       Signatures signatures = new Signatures();
@@ -130,6 +125,24 @@ public class CommandLineConfigurationBuilder
       }
       configuration.setSignatures(signatures);
 
+      Gavs gavs = new Gavs();
+      if (cmd.hasOption("gav-file"))
+      {
+         for (String file : cmd.getOptionValues("gav-file"))
+         {
+            try
+            {
+               gavs.load(new File(file));
+            }
+            catch (IOException e)
+            {
+               System.err.println("Unable to load signatures from file: " + file);
+               e.printStackTrace();
+            }
+         }
+      }
+      configuration.setGavs(gavs);
+
       // directories to be traversed
       if (cmd.hasOption("directory"))
       {
@@ -141,18 +154,28 @@ public class CommandLineConfigurationBuilder
          }
          configuration.setDirectories(dirs);
       }
-      
+
       // install pom files as well
-      if(cmd.hasOption("install-poms"))
+      if (cmd.hasOption("install-poms"))
       {
          configuration.setInstallingPoms(true);
       }
 
-      return configuration;
+      if (cmd.hasOption("version-suffix"))
+      {
+         configuration.setVersionSuffix(cmd.getOptionValue("version-suffix"));
+      }
 
+      if (cmd.hasOption("bom"))
+      {
+         configuration.setBomCreator(new BomCreator(new Artifact(cmd.getOptionValue("bom"))));
+      }
+
+      configuration.setRepositorySystem(new MavenRepositorySystem(configuration));
+      return configuration;
    }
 
-   @SuppressWarnings( { "static-access" })
+   @SuppressWarnings({ "static-access" })
    private Options options()
    {
       Options options = new Options();
@@ -161,13 +184,21 @@ public class CommandLineConfigurationBuilder
                .create("h");
       options.addOption(helpOpt);
 
-      Option targetOpt = OptionBuilder.withLongOpt("signature-file")
+      Option signatureFileOpt = OptionBuilder.withLongOpt("signature-file")
                .withArgName("signature-file")
                .hasArgs(Option.UNLIMITED_VALUES)
                .withValueSeparator(' ')
                .withDescription("A file where JAR signatures are retrieved from. Jar signature is SHA1-Manifest-Digest field value")
                .create('s');
-      options.addOption(targetOpt);
+      options.addOption(signatureFileOpt);
+
+      Option gavFileOpt = OptionBuilder.withLongOpt("gav-file")
+               .withArgName("gav-file")
+               .hasArgs(Option.UNLIMITED_VALUES)
+               .withValueSeparator(' ')
+               .withDescription("A file wher artifact file-name.jar:GAV mapping is retrieved from")
+               .create('g');
+      options.addOption(gavFileOpt);
 
       Option listenerOpt = OptionBuilder.withLongOpt("local-repository")
                .withArgName("local-repository")
@@ -194,11 +225,23 @@ public class CommandLineConfigurationBuilder
                .withDescription("A name of filter to be used for resolution of Maven artifacts. If no filter is specified, all available filters are selected. Currently available filters are: " + availableFilters())
                .create('f');
       options.addOption(outputOpt);
-      
+
       Option installPoms = OptionBuilder.withLongOpt("install-poms")
                .withDescription("Install pom.xml files into repository if available")
                .create('i');
       options.addOption(installPoms);
+
+      Option versionSuffixOpt = OptionBuilder.withLongOpt("version-suffix")
+               .withDescription("Append version suffix to installed artifacts")
+               .hasArgs(1)
+               .create('v');
+      options.addOption(versionSuffixOpt);
+
+      Option bomOpt = OptionBuilder.withLongOpt("bom")
+            .withDescription("Create BOM under given G:A:V")
+            .hasArgs(1)
+            .create('b');
+      options.addOption(bomOpt);
 
       return options;
    }
