@@ -5,4 +5,6 @@ usage:
 
 mvn package
 
-java -jar target/repotree-jar-with-dependencies -r <local-repository> [-f <matching-filter>]* [-d <directory-to-be-traversed]+ [-s <signature-file]*
+java -jar target/repotree-jar-with-dependencies -r <local-repository> [-f <matching-filter>]* 
+          [-d <directory-to-be-traversed>]+ [-s <signature-file>]* [-g <gav-file>]* 
+          [-v <version-suffix>] [-b <bom-gav>]
